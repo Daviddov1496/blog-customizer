@@ -1,12 +1,8 @@
-import { ArrowButton } from 'components/arrow-button';
-import { Button } from 'components/button';
-import { FormEvent, useEffect, useRef, useState } from 'react';
-import clsx from 'clsx';
+import { useState, FormEvent, useEffect, useRef } from 'react';
+
 import styles from './ArticleParamsForm.module.scss';
-import { Text } from '../text';
-import { Select } from '../select';
-import { RadioGroup } from '../radio-group';
-import { Separator } from '../separator';
+import clsx from 'clsx';
+
 import {
 	OptionType,
 	fontFamilyOptions,
@@ -18,69 +14,85 @@ import {
 	ArticleStateType,
 } from '../../constants/articleProps';
 
+import { ArrowButton } from '../arrow-button';
+import { Text } from '../text';
+import { Select } from '../select';
+import { RadioGroup } from '../radio-group';
+import { Separator } from '../separator';
+import { Button } from '../button';
+
 type TArticleParamsFormProps = {
+	// создаю тип который описывает пропсы для компонента
 	setSettings: (value: ArticleStateType) => void;
 };
 
 export const ArticleParamsForm = ({ setSettings }: TArticleParamsFormProps) => {
-	//Состояние для открытия/закрытия формы
-	const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+	const [isOpen, setIsOpen] = useState<boolean>(false); //состояние для открытия меню
 
-	//Настройки, которые указывает пользователь в процессе заполнения формы
 	const [userSettings, setUserSettings] =
-		useState<ArticleStateType>(defaultArticleState);
+		useState<ArticleStateType>(defaultArticleState); // настройки пользователя
 
-	//Функция для применения настроек, указанных пользователем в форме
-	function submitForm(event: FormEvent) {
-		event.preventDefault();
+	function handleFormSubmit(e: FormEvent) {
+		// применение настроек
+		e.preventDefault();
 		setSettings(userSettings);
 	}
 
-	//Функция для сброса настроек к дефолтным
-	function resetForm(event: FormEvent) {
-		event.preventDefault();
+	function saveForm(option: keyof ArticleStateType) {
+		// форма для сохранения настроек
+		return function (selected: OptionType): void {
+			setUserSettings((prevSettings) => ({
+				...prevSettings,
+				[option]: selected,
+			}));
+		};
+	}
+
+	function resetForm(e: FormEvent) {
+		// форма сброса
+		e.preventDefault();
 		setUserSettings(defaultArticleState);
 		setSettings(defaultArticleState);
 	}
 
-	//Универсальная функция для записи опции поля формы в пользовательские настройки
-	function saveOption(option: keyof ArticleStateType) {
-		return (selected: OptionType): void => {
-			setUserSettings({ ...userSettings, [option]: selected });
-		};
-	}
+	const refContainer = useRef<HTMLDivElement | null>(null); // нахожу общий контейнер
 
-	//Найдем общий контейнер компонента
-	const refContainer = useRef<HTMLDivElement | null>(null);
-
-	//Функция для закрытия формы настроек по нажатию клавишей мыши вне этой формы, если она открыта
-	function handleMouseClick(event: MouseEvent) {
-		if (refContainer.current && (event.target as Node)) {
-			if (!refContainer.current.contains(event.target as Node) && isMenuOpen) {
-				setIsMenuOpen(false);
-			}
+	function handleOverlayClick(e: MouseEvent) {
+		// закрытие на оверлей
+		if (
+			isOpen &&
+			refContainer.current &&
+			!refContainer.current.contains(e.target as Node)
+		) {
+			setIsOpen(false);
 		}
 	}
 
-	//Привяжем к window через слушаетель событий функцию handleMouseClick после рендера компонента и отвяжем после размонтирования компонента
 	useEffect(() => {
-		window.addEventListener('mousedown', handleMouseClick);
+		// вешаю слушатель событий
+		if (isOpen) {
+			window.addEventListener('mousedown', handleOverlayClick);
+		}
 		return () => {
-			window.removeEventListener('mousedown', handleMouseClick);
+			// убираю слушатель
+			window.removeEventListener('mousedown', handleOverlayClick);
 		};
-	}, [isMenuOpen]);
+	}, [isOpen]);
 
 	return (
 		<div ref={refContainer} className={styles.wrapperForm}>
 			<ArrowButton
-				isMenuOpen={isMenuOpen}
+				isOpen={isOpen}
 				handleClickArrow={() => {
-					setIsMenuOpen(!isMenuOpen);
+					setIsOpen(!isOpen);
 				}}
 			/>
 			<aside
-				className={clsx(styles.container, isMenuOpen && styles.container_open)}>
-				<form className={styles.form} onSubmit={submitForm} onReset={resetForm}>
+				className={clsx(styles.container, isOpen && styles.container_open)}>
+				<form
+					className={styles.form}
+					onSubmit={handleFormSubmit}
+					onReset={resetForm}>
 					<Text
 						size={31}
 						weight={800}
@@ -93,33 +105,33 @@ export const ArticleParamsForm = ({ setSettings }: TArticleParamsFormProps) => {
 					<Select
 						selected={userSettings.fontFamilyOption}
 						options={fontFamilyOptions}
-						onChange={saveOption('fontFamilyOption')}
+						onChange={saveForm('fontFamilyOption')}
 						title='Шрифт'
 					/>
 					<RadioGroup
 						name='fontSize'
 						options={fontSizeOptions}
 						selected={userSettings.fontSizeOption}
-						onChange={saveOption('fontSizeOption')}
+						onChange={saveForm('fontSizeOption')}
 						title='рАЗМЕР шрифта'
 					/>
 					<Select
 						selected={userSettings.fontColor}
 						options={fontColors}
-						onChange={saveOption('fontColor')}
+						onChange={saveForm('fontColor')}
 						title={'Цвет шрифта'}
 					/>
 					<Separator />
 					<Select
 						selected={userSettings.backgroundColor}
 						options={backgroundColors}
-						onChange={saveOption('backgroundColor')}
+						onChange={saveForm('backgroundColor')}
 						title='Цвет фона'
 					/>
 					<Select
 						selected={userSettings.contentWidth}
 						options={contentWidthArr}
-						onChange={saveOption('contentWidth')}
+						onChange={saveForm('contentWidth')}
 						title='Ширина контента'
 					/>
 					<div className={styles.bottomContainer}>

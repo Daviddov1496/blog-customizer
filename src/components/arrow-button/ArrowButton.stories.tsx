@@ -4,35 +4,20 @@ import { ArrowButton } from './ArrowButton';
 
 const meta: Meta<typeof ArrowButton> = {
 	component: ArrowButton,
-	tags: ['autodocs'],
 };
 
 export default meta;
 type Story = StoryObj<typeof ArrowButton>;
 
-export const ArrowButtonOpenStory: Story = {
-	name: 'Кнопка в состоянии открытых настроек',
+export const ArrowButtonStory: Story = {
 	render: () => {
 		return (
 			<>
 				<ArrowButton
-					isMenuOpen={true}
-					handleClickArrow={() => console.log('Открытие настроек')}
-				/>
-			</>
-		);
-	},
-};
-
-export const ArrowButtonCloseStory: Story = {
-	name: 'Кнопка в состоянии закрытых настроек',
-	storyName: 'sdfsd',
-	render: () => {
-		return (
-			<>
-				<ArrowButton
-					isMenuOpen={false}
-					handleClickArrow={() => console.log('Закрытие настроек')}
+					isOpen={false}
+					handleClickArrow={function (): void {
+						throw new Error('Function not implemented.');
+					}}
 				/>
 			</>
 		);
