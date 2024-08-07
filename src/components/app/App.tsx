@@ -10,6 +10,7 @@ import { Article } from '../article';
 export const App = () => {
 	const [settings, setSettings] =
 		useState<ArticleStateType>(defaultArticleState);
+
 	return (
 		<main
 			className={styles.main}
